@@ -1,0 +1,42 @@
+services:
+
+   postgres:
+      container_name: postgres
+      build:
+        context: ./postgres/
+        dockerfile: Dockerfile
+      restart: always
+      ports:
+        - "5432:5432"
+      expose:
+        - 5432
+      environment:
+        - POSTGRES_DB=news
+        - POSTGRES_USER=admin
+        - POSTGRES_PASSWORD=newsadmin
+        - POSTGRES_PORT=5432
+      volumes: 
+        - postgresvolume:/var/lib/postgres/data
+      networks:
+        - test
+    
+   news_scrp:
+      container_name: news_scrp
+      build:
+        context: ./etl/
+        dockerfile: Dockerfile
+      entrypoint: ["python", "-m","main"]
+      depends_on:
+        - postgres
+      networks:
+        - test
+      volumes:
+        - ./etl:/home/etl/news
+
+volumes:
+   postgresvolume:
+      driver: local
+
+networks:
+   test:
+     driver: bridge
